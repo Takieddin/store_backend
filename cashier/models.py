@@ -36,11 +36,3 @@ class Diposite(models.Model):
     amount = models.IntegerField()
 
 
-class Restore(models.Model):
-    client = models.ForeignKey(
-        Client, related_name='restores', on_delete=models.CASCADE, null=False, default=1)
-    total = models.IntegerField()
-    quantity = models.IntegerField()
-    date = models.DateTimeField()
-    basket = models.ForeignKey(
-        Basket, related_name='restores', on_delete=models.CASCADE, null=False, default=1)
