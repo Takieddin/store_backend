@@ -1,6 +1,6 @@
 from stock.serializers import BrandSerializer, CategorySerializer, ClearanceSerializer, SougSerializer, StockSerializer, SupplierSerializer
-from stock.models import Category, Clearance, Supplier
-from cashier.models import Cashier, Diposite, Profit, Stock, Soug, Brand
+from stock.models import Category, Clearance, Soug, Stock, Supplier
+from cashier.models import Cashier, Diposite, Profit,   Brand
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.generic.base import View
