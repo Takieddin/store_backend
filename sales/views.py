@@ -1,8 +1,13 @@
-from cashier.models import Cashier, Diposite,Payment,Basket,Restore
+from copy import error
+from stock.models import Stock
+from cashier.models import Cashier, Profit, SaleProfit
+from sales.models import Payment,Basket,Restore,Client, Process
+from sales.serializers import  BasketSerializer, ClientSerializer, PaymentSerializer, ProcessSerializer, RestoreSerializer
 from django.http.response import HttpResponse, JsonResponse 
 from django.shortcuts import render
 from django.views.generic.base import View
-from models import Cashier
+from datetime import datetime
+
 
 # Create your views here.
 from rest_framework import viewsets
@@ -34,60 +39,95 @@ class ProcessViewSet(viewsets.ModelViewSet):
    
     queryset =Process.objects.all()
     serializer_class = ProcessSerializer
-    #permission_classes = [permissions.IsAuthenticated]
+    #permission_class es = [permissions.IsAuthenticated]
+    def create(self, request, *args, **kwargs):
+        client=Client.objects.get(id=request.data['client_id'])
+        date = datetime.fromtimestamp(
+            int(request.data['date'] or 0) / 1000.0) or datetime.now()
+        paied=request.data['paied']or 0
+        total=request.data['total'] or 0
+        i=1
+        p=Process(client=client,date=date,total=total,name=request.data['name'] or 'process',paied=paied)
+        p.save()
+        cashier=Cashier(date=date,amount=+int(paied))
+        sufficient =True
+        profit=Profit(date=date,amount=+int(total))
+        sprofit=SaleProfit(date=date,amount=+int(total))
+
+        for basket in request.data['baskets']:
+            stock=Stock.objects.get(id=basket["id"])
+            name = "basket "+str(i)
+            i+=1
+            quantity=basket["quantity"]
+            prix_final=basket["prix_final"]
+            if quantity<=stock.instock:
+                stock.instock -=quantity
+                stock.save()
+                b=Basket(name=name,quantity=quantity,date=date,prix_final=prix_final,process=p,stock=stock)
+                b.save()
+            else:
+                sufficient=False
+                break
+        
+        if sufficient:
+            cashier.save()
+            sprofit.save()
+            profit.save()
+            pa=Payment(client=client,date=date,amount=paied,process=p)
+            pa.save()
+            data = ProcessSerializer(p).data
+            return JsonResponse(data=data, status=201)
+        else:
+            p.delete()
+            return JsonResponse(data={"error":'insufficiant stock'}, status=409)
 class PaymentViewSet(viewsets.ModelViewSet):
    
     queryset =Payment.objects.all()
     serializer_class = PaymentSerializer
     #permission_classes = [permissions.IsAuthenticated]
+    def create(self, request, *args, **kwargs):
+        client=Client.objects.get(id=request.data['client_id'])
+        process=Process.objects.get(id=request.data['process_id'])
+        date = datetime.fromtimestamp(
+            int(request.data['date'] or 0) / 1000.0) or datetime.now()
+        amount=request.data['amount'] or 0
+        process.paied+=amount
+        process.save()
+        cashier=Cashier(date=date,amount=+int(amount))
+        cashier.save()
+
+        p=Payment(client=client,date=date,amount=amount,process=process)
+        p.save()
+        data = PaymentSerializer(p).data
+        return JsonResponse(data=data, status=201)
 class BasketViewSet(viewsets.ModelViewSet):
    
     queryset =Basket.objects.all()
     serializer_class = BasketSerializer
     #permission_classes = [permissions.IsAuthenticated] 
 class RestoreViewSet(viewsets.ModelViewSet):
-   
+
     queryset =Restore.objects.all()
     serializer_class = RestoreSerializer
-    #permission_classes = [permissions.IsAuthenticated] 
-"""    
-class CategoryViewSet(viewsets.ModelViewSet):
-   
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    '''def get_queryset(self):
-        user = self.request.user
-        b=Budget.objects.filter(user=user)
-        return Category.objects.filter(budget=b[0])'''
     def create(self, request, *args, **kwargs):
-        b=Budget.objects.get(pk=request.data['budget_id'])
-        c=Category(budget=b,**request.data)
-        c.save()
-        data = CategorySerializer(c).data
-
-        return JsonResponse(data=data, status=201)
-    permission_classes = [permissions.AllowAny]
-class RowViewSet(viewsets.ModelViewSet):
-   
-    queryset = Row.objects.all()
-    serializer_class = RowSerializer
-    '''def get_queryset(self):
-        user = self.request.user
-        b=Budget.objects.filter(user=user)
-        c=Category.objects.filter(budget=b[0])
-        return Row.objects.filter(category=c[0])'''
-    def create(self, request, *args, **kwargs):
-        b=Budget.objects.get(pk=request.data['budget_id'])
-        print("b=")
-        print(b)
-        c=b.categories.get(pk=request.data['category_id'])
-        print("c=")
-        print(c)
-        r=Row(category=c,text=request.data["text"],value=0)
-        print("r=")
-        print(r)
+        client=Client.objects.get(id=request.data['client_id'])
+        basket=Basket.objects.get(id=request.data['basket_id'])
+        date = datetime.fromtimestamp(
+            int(request.data['date'] or 0) / 1000.0) or datetime.now()
+        total=request.data['total'] 
+        quantity=request.data['quantity']
+        cashier=Cashier(date=date,amount=-int(total))
+        cashier.save()
+        profit=Profit(date=date,amount=-int(total))
+        profit.save()
+        sprofit=SaleProfit(date=date,amount=-int(total))
+        sprofit.save()
+        stock=Stock.objects.get(id=basket.stock.id)
+        stock.quantity+=quantity
+        stock.save()
+        r=Restore(client=client,basket=basket,date=date,total=total,quantity=quantity)
         r.save()
-        print("ee")
-        data = RowSerializer(r).data
+        data = RestoreSerializer(r ).data
         return JsonResponse(data=data, status=201)
-    permission_classes = [permissions.AllowAny]"""
+   
+    #permission_classes = [permissions.IsAuthenticated] 
