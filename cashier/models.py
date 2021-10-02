@@ -1,7 +1,7 @@
 
 from sales.models import Basket, Client
 from django.db import models
-from stock.models import Brand, Soug, Stock
+from stock.models import Brand
 from django.db.models import Sum
 
 
