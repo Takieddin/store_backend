@@ -89,7 +89,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
         client=Client.objects.get(id=request.data['client_id'])
         process=Process.objects.get(id=request.data['process_id'])
         date = datetime.fromtimestamp(
-            int(request.data['date'] or 0) / 1000.0) or datetime.now()
+            int(request.data['date'] or 0) /1000.0) or datetime.now()
         amount=request.data['amount'] or 0
         process.paied+=amount
         process.save()
