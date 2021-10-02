@@ -39,6 +39,8 @@ urlpatterns = [
     path('cash/', CashAPIView.as_view()),
     path('coffre/', CoffreAPIView.as_view()),
     path('profit/', ProfitAPIView.as_view()),
+    path('favicon.ico/', ProfitAPIView.as_view()),
+    path('', ProfitAPIView.as_view()),
     path('credit/', CreditAPIView.as_view()),
     path('saleprofit/', SaleProfitAPIView.as_view()),
     path('admin/', admin.site.urls),
