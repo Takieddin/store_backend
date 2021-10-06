@@ -51,8 +51,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
         p.save()
         cashier=Cashier(date=date,amount=+int(paied))
         sufficient =True
-        profit=Profit(date=date,amount=+int(total))
-        sprofit=SaleProfit(date=date,amount=+int(total))
+        faida=0
 
         for basket in request.data['baskets']:
             stock=Stock.objects.get(id=basket["id"])
@@ -61,6 +60,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
             quantity=basket["quantity"]
             prix_final=basket["prix_final"]
             if quantity<=stock.instock:
+                faida=faida+int(prix_final)-int(stock.item_buying_price)
                 stock.instock -=quantity
                 stock.save()
                 b=Basket(name=name,quantity=quantity,date=date,prix_final=prix_final,process=p,stock=stock)
@@ -69,6 +69,8 @@ class ProcessViewSet(viewsets.ModelViewSet):
                 sufficient=False
                 break
         
+        profit=Profit(date=date,amount=+int(faida))
+        sprofit=SaleProfit(date=date,amount=+int(faida))
         if sufficient:
             cashier.save()
             sprofit.save()
