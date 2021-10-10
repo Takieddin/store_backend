@@ -143,8 +143,12 @@ class DipositeViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         name=request.data['name']
         details=request.data['details']
-        date = datetime.fromtimestamp(
-            int(request.data['date'] or 0) / 1000.0) or datetime.now()
+        date=request.data['date']
+        if date  is None:
+            date=datetime.now()
+        else:
+            date = datetime.fromtimestamp(
+                int(request.data['date'] or 0) / 1000.0) or datetime.now()
         amount=request.data['amount']
         dip=Diposite(name=name,details=details,date=date,amount=amount)
         cash=request.data['cash'] or False
@@ -171,8 +175,12 @@ class ExpanceViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         name=request.data['name']
         details=request.data['details']
-        date = datetime.fromtimestamp(
-            int(request.data['date'] or 0) / 1000.0) or datetime.now()
+        date=request.data['date']
+        if date  is None:
+            date=datetime.now()
+        else:
+            date = datetime.fromtimestamp(
+                int(request.data['date'] or 0) / 1000.0) or datetime.now()
         amount=request.data['amount']
         cash=request.data['cash'] or False
         profit=request.data['profit'] or False

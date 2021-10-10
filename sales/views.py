@@ -41,9 +41,14 @@ class ProcessViewSet(viewsets.ModelViewSet):
     serializer_class = ProcessSerializer
     #permission_class es = [permissions.IsAuthenticated]
     def create(self, request, *args, **kwargs):
+
         client=Client.objects.get(id=request.data['client_id'])
-        date = datetime.fromtimestamp(
-            int(request.data['date'] or 0) / 1000.0) or datetime.now()
+        date=request.data['date']
+        if date  is None:
+            date=datetime.now()
+        else:
+            date = datetime.fromtimestamp(
+                int(request.data['date'] or 0) / 1000.0) or datetime.now()
         paied=request.data['paied']or 0
         total=request.data['total'] or 0
         i=1
@@ -114,8 +119,12 @@ class RestoreViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         client=Client.objects.get(id=request.data['client_id'])
         basket=Basket.objects.get(id=request.data['basket_id'])
-        date = datetime.fromtimestamp(
-            int(request.data['date'] or 0) / 1000.0) or datetime.now()
+        date=request.data['date']
+        if date  is None:
+            date=datetime.now()
+        else:
+            date = datetime.fromtimestamp(
+                int(request.data['date'] or 0) / 1000.0) or datetime.now()
         total=request.data['total'] 
         quantity=request.data['quantity']
         cashier=Cashier(date=date,amount=-int(total))

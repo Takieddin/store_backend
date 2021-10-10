@@ -58,8 +58,12 @@ class StockViewSet(viewsets.ModelViewSet):
         name = request.data['name']
         note = request.data['note'] or ' '
         quantity = int(request.data['quantity'])
-        date = datetime.fromtimestamp(
-            int(request.data['date'] or 0) / 1000.0) or datetime.now()
+        date=request.data['date']
+        if date  is None:
+            date=datetime.now()
+        else:
+            date = datetime.fromtimestamp(
+                int(request.data['date'] or 0) / 1000.0) or datetime.now()
         item_buying_price = int(request.data['item_buying_price'])
         item_sale_price = int(request.data['item_sale_price'])
         subprofit = int(request.data['subprofit']) or False
